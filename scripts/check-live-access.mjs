@@ -1,7 +1,15 @@
 #!/usr/bin/env node
 import dns from "node:dns/promises";
 
-const endpoint = "https://api.football-data.org/v4/competitions/WC/matches?dateFrom=2026-06-23&dateTo=2026-06-27";
+function dateKey(offsetDays) {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() + offsetDays);
+  return date.toISOString().slice(0, 10);
+}
+
+const endpoint = new URL("https://api.football-data.org/v4/competitions/WC/matches");
+endpoint.searchParams.set("dateFrom", dateKey(-2));
+endpoint.searchParams.set("dateTo", dateKey(2));
 const token = process.env.FOOTBALL_DATA_API_TOKEN;
 
 function formatError(error) {
