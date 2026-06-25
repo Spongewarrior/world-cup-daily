@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>世界杯每日看球</title>
+  <style>
+    :root {
+      --ink: #f7f4e9;
+      --muted: #aeb9b2;
+      --paper: #0b1713;
+      --panel: #12241d;
+      --panel-2: #193128;
+      --line: rgba(255,255,255,.11);
+      --green: #46d983;
+      --lime: #d9ff67;
+      --orange: #ff9d5c;
+      --red: #ff6b6b;
+      --shadow: 0 18px 60px rgba(0,0,0,.32);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 85% 4%, rgba(70,217,131,.15), transparent 28rem),
+        radial-gradient(circle at 5% 25%, rgba(217,255,103,.07), transparent 22rem),
+        var(--paper);
+      color: var(--ink);
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      line-height: 1.55;
+    }
+    button, input, select { font: inherit; }
+    a { color: inherit; }
+    .shell { width: min(1060px, calc(100% - 32px)); margin: 0 auto; padding: 24px 0 80px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: .03em; }
+    .ball { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--lime); color: #112017; }
+    .button {
+      border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.06);
+      color: var(--ink); padding: 9px 15px; cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    }
+    .button:hover { background: rgba(255,255,255,.11); transform: translateY(-1px); }
+    .button.primary { color: #102017; background: var(--lime); border-color: var(--lime); font-weight: 800; }
+    .button.small { padding: 7px 11px; font-size: 13px; }
+    .hero {
+      position: relative; overflow: hidden; min-height: 330px; padding: clamp(28px, 6vw, 70px);
+      border: 1px solid var(--line); border-radius: 30px; background:
+        linear-gradient(120deg, rgba(10,30,22,.96), rgba(23,69,45,.75)),
+        repeating-linear-gradient(90deg, transparent 0 74px, rgba(255,255,255,.025) 75px 76px);
+      box-shadow: var(--shadow);
+    }
+    .hero::after {
+      content: ""; position: absolute; width: 330px; height: 330px; border: 44px solid rgba(217,255,103,.08);
+      border-radius: 50%; right: -100px; bottom: -170px;
+    }
+    .eyebrow { color: var(--lime); text-transform: uppercase; letter-spacing: .13em; font-size: 12px; font-weight: 800; }
+    h1 { margin: 12px 0 14px; max-width: 720px; font-size: clamp(38px, 7vw, 76px); line-height: 1.03; letter-spacing: -.045em; }
+    .hero p { max-width: 650px; color: #d0ddd5; font-size: 16px; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 27px; }
+    .pill { border: 1px solid var(--line); background: rgba(0,0,0,.17); border-radius: 99px; padding: 7px 11px; color: #d9e5dd; font-size: 13px; }
+    .warning { margin: 18px 0 0; border: 1px solid rgba(255,157,92,.35); background: rgba(255,157,92,.1); color: #ffd0af; padding: 13px 16px; border-radius: 14px; }
+    .section { margin-top: 46px; }
+    .section-head { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 17px; }
+    h2 { margin: 0; font-size: clamp(25px, 4vw, 38px); letter-spacing: -.03em; }
+    .section-note { color: var(--muted); font-size: 13px; text-align: right; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .card { border: 1px solid var(--line); border-radius: 20px; background: linear-gradient(145deg, var(--panel), #0e1f19); padding: 20px; }
+    .match { display: flex; flex-direction: column; min-height: 245px; }
+    .match-top, .match-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .status { color: var(--lime); font-size: 12px; font-weight: 800; }
+    .status.alert { color: var(--orange); }
+    .time { color: var(--muted); font-size: 13px; }
+    .teams { margin: 25px 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
+    .team { font-size: clamp(18px, 3vw, 28px); font-weight: 850; line-height: 1.12; }
+    .team:last-child { text-align: right; }
+    .versus { color: var(--muted); font-size: 12px; }
+    .score { color: var(--lime); font-size: clamp(27px, 5vw, 45px); font-weight: 900; letter-spacing: -.04em; }
+    .reason { color: #c9d6ce; font-size: 13px; margin: auto 0 16px; }
+    .match-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .source-link { color: var(--muted); font-size: 12px; }
+    .news-list { display: grid; gap: 12px; }
+    .news { display: grid; grid-template-columns: 116px 1fr; gap: 20px; align-items: start; }
+    .news-meta { color: var(--lime); font-size: 12px; font-weight: 750; }
+    .news h3 { margin: 0 0 7px; font-size: 20px; line-height: 1.3; }
+    .news p { margin: 0; color: #c2cec7; }
+    .news a { text-decoration: none; }
+    .news a:hover h3 { color: var(--lime); }
+    .unconfirmed { display: inline-block; margin-left: 6px; color: #ffe0c9; background: rgba(255,157,92,.14); border-radius: 99px; padding: 2px 7px; font-size: 11px; }
+    .empty { color: var(--muted); border: 1px dashed var(--line); border-radius: 18px; padding: 26px; text-align: center; }
+    .data-box { color: var(--muted); font-size: 13px; }
+    .data-box strong { color: var(--ink); }
+    footer { margin-top: 48px; color: #718078; font-size: 12px; text-align: center; }
+    dialog { width: min(620px, calc(100% - 24px)); max-height: 90vh; overflow: auto; border: 1px solid var(--line); border-radius: 24px; color: var(--ink); background: #10221b; box-shadow: var(--shadow); padding: 0; }
+    dialog::backdrop { background: rgba(0,0,0,.7); backdrop-filter: blur(5px); }
+    .dialog-inner { padding: 24px; }
+    .dialog-head { display: flex; justify-content: space-between; gap: 16px; align-items: start; }
+    .dialog-head h2 { font-size: 28px; }
+    .icon-button { border: 0; background: transparent; color: var(--muted); font-size: 25px; cursor: pointer; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
+    label { display: grid; gap: 7px; color: #d4dfd8; font-size: 13px; }
+    label.wide { grid-column: 1 / -1; }
+    input, select { width: 100%; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: rgba(0,0,0,.2); padding: 11px 12px; }
+    .help { color: var(--muted); font-size: 12px; margin: 15px 0; }
+    .dialog-actions { display: flex; flex-wrap: wrap; gap: 9px; }
+    .toast { position: fixed; left: 50%; bottom: 24px; translate: -50% 20px; opacity: 0; pointer-events: none; background: var(--lime); color: #102017; border-radius: 99px; padding: 10px 16px; font-weight: 800; transition: .25s; z-index: 9; }
+    .toast.show { translate: -50% 0; opacity: 1; }
+    @media (max-width: 700px) {
+      .shell { width: min(100% - 22px, 1060px); padding-top: 13px; }
+      .hero { min-height: 0; border-radius: 23px; }
+      .grid { grid-template-columns: 1fr; }
+      .news { grid-template-columns: 1fr; gap: 7px; }
+      .section-head { align-items: start; flex-direction: column; }
+      .section-note { text-align: left; }
+      .form-grid { grid-template-columns: 1fr; }
+      label.wide { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <script id="digest-data" type="application/json">__DIGEST_DATA__</script>
+  <main class="shell">
+    <div class="topbar">
+      <div class="brand"><span class="ball">⚽</span> 世界杯每日看球</div>
+      <button class="button" id="open-preferences" type="button">⚙ 修改偏好</button>
+    </div>
+    <section class="hero">
+      <div class="eyebrow" id="hero-date"></div>
+      <h1 id="headline"></h1>
+      <p id="headline-summary"></p>
+      <div class="hero-meta" id="hero-meta"></div>
+      <div class="warning" id="cache-warning" hidden></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h2>昨日战况</h2><div class="section-note">只展示当地昨日已结束的比赛</div></div>
+      <div class="grid" id="yesterday-results"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h2>今日趣闻</h2><div class="section-note">摘要为原创改写，点击前往原始报道</div></div>
+      <div class="news-list" id="news"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h2>今日看球</h2><div class="section-note">按你的偏好和比赛阶段排序</div></div>
+      <div class="grid" id="today-matches"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h2>明日预告</h2><div class="section-note">提前安排，不让凌晨开球偷袭你</div></div>
+      <div class="grid" id="tomorrow-matches"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h2>数据说明</h2></div>
+      <div class="card data-box" id="data-notes"></div>
+    </section>
+    <footer>赛程预约是生成日报时的快照；若开赛时间变化，请以后续日报和赛事官方信息为准。</footer>
+  </main>
+
+  <dialog id="preferences-dialog">
+    <form method="dialog" class="dialog-inner" id="preferences-form">
+      <div class="dialog-head">
+        <div><div class="eyebrow">Personalize</div><h2>修改偏好</h2></div>
+        <button class="icon-button" value="cancel" aria-label="关闭">×</button>
+      </div>
+      <div class="form-grid">
+        <label class="wide">喜欢的球队（用逗号分隔）
+          <input id="favorite-teams" autocomplete="off" placeholder="例如：Argentina, 中国">
+        </label>
+        <label class="wide">关注的球星（用逗号分隔）
+          <input id="favorite-players" autocomplete="off" placeholder="例如：Lionel Messi">
+        </label>
+        <label>所在时区
+          <input id="timezone" autocomplete="off" placeholder="Asia/Shanghai">
+        </label>
+        <label>每日推送时间
+          <input id="delivery-time" type="time">
+        </label>
+        <label>提前提醒
+          <select id="reminder-minutes">
+            <option value="0">开赛时</option><option value="15">提前 15 分钟</option>
+            <option value="30">提前 30 分钟</option><option value="60">提前 1 小时</option>
+            <option value="120">提前 2 小时</option>
+          </select>
+        </label>
+        <label>内容密度
+          <select id="density">
+            <option value="compact">精简</option><option value="balanced">均衡</option><option value="deep">深度</option>
+          </select>
+        </label>
+      </div>
+      <p class="help">保存会生成新的 profile.json。支持本地文件写入的浏览器可选择并覆盖原文件；否则会下载文件，请用它替换工作目录中的 .world-cup-daily/profile.json。时区或推送时间变化后，还需在 Codex 中同步每日任务。</p>
+      <div class="dialog-actions">
+        <button class="button primary" type="button" id="save-profile">保存 profile.json</button>
+        <button class="button" type="button" id="copy-instruction">复制修改指令</button>
+        <button class="button" value="cancel">取消</button>
+      </div>
+    </form>
+  </dialog>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    (() => {
+      "use strict";
+      const data = JSON.parse(document.getElementById("digest-data").textContent);
+      const $ = (selector) => document.querySelector(selector);
+      const create = (tag, className, text) => {
+        const element = document.createElement(tag);
+        if (className) element.className = className;
+        if (text !== undefined) element.textContent = text;
+        return element;
+      };
+      const toast = (message) => {
+        const element = $("#toast");
+        element.textContent = message;
+        element.classList.add("show");
+        setTimeout(() => element.classList.remove("show"), 2200);
+      };
+      const [displayYear, displayMonth, displayDay] = data.meta.date.split("-").map(Number);
+      const weekday = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"][
+        new Date(Date.UTC(displayYear, displayMonth - 1, displayDay)).getUTCDay()
+      ];
+      const displayDate = `${displayYear}年${displayMonth}月${displayDay}日 ${weekday}`;
+      $("#hero-date").textContent = `${displayDate} · ${data.meta.timezone}`;
+      $("#headline").textContent = data.headline.title;
+      $("#headline-summary").textContent = data.headline.summary;
+      const heroMeta = $("#hero-meta");
+      [
+        `${data.yesterdayResults.length} 场昨日赛果`,
+        `${data.todayMatches.length} 场今日比赛`,
+        `${data.tomorrowMatches.length} 场明日比赛`
+      ].forEach((text) => heroMeta.append(create("span", "pill", text)));
+      if (data.meta.matchData.isCached) {
+        const warning = $("#cache-warning");
+        warning.hidden = false;
+        warning.textContent = `当前使用缓存比赛数据（${data.meta.matchData.fetchedAt || "时间未知"}）。原因：${data.meta.matchData.cacheReason || "实时数据暂不可用"}`;
+      }
+
+      function utcCompact(date) {
+        return new Date(date).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+      }
+      function escapeIcs(value) {
+        return String(value).replaceAll("\\", "\\\\").replaceAll("\n", "\\n").replaceAll(",", "\\,").replaceAll(";", "\\;");
+      }
+      function calendarDescription(match) {
+        return `${match.stage}；${match.recommendationReason}。数据来源：${match.sourceUrl}`;
+      }
+      function icsFor(match) {
+        const start = new Date(match.utcDate);
+        const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+        return [
+          "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//World Cup Daily//ZH-CN",
+          "CALSCALE:GREGORIAN", "METHOD:PUBLISH", "BEGIN:VEVENT",
+          `UID:${escapeIcs(match.uid)}`, `DTSTAMP:${utcCompact(new Date())}`,
+          `DTSTART:${utcCompact(start)}`, `DTEND:${utcCompact(end)}`,
+          `SUMMARY:${escapeIcs(`${match.homeTeam} vs ${match.awayTeam}｜世界杯`)}`,
+          `DESCRIPTION:${escapeIcs(calendarDescription(match))}`,
+          `LOCATION:${escapeIcs(match.venue)}`,
+          "BEGIN:VALARM", "TRIGGER:-PT" + Number(data.profile.reminderMinutes) + "M",
+          "ACTION:DISPLAY", `DESCRIPTION:${escapeIcs(`${match.homeTeam} vs ${match.awayTeam} 即将开赛`)}`,
+          "END:VALARM", "END:VEVENT", "END:VCALENDAR"
+        ].join("\r\n");
+      }
+      function downloadIcs(match) {
+        const blob = new Blob([icsFor(match)], { type: "text/calendar;charset=utf-8" });
+        const link = create("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${match.homeTeam}-vs-${match.awayTeam}.ics`.replace(/[\\/:*?"<>|]/g, "-");
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 500);
+      }
+      function googleUrl(match) {
+        const start = new Date(match.utcDate);
+        const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+        const params = new URLSearchParams({
+          action: "TEMPLATE",
+          text: `${match.homeTeam} vs ${match.awayTeam}｜世界杯`,
+          dates: `${utcCompact(start)}/${utcCompact(end)}`,
+          details: calendarDescription(match),
+          location: match.venue
+        });
+        return `https://calendar.google.com/calendar/render?${params}`;
+      }
+      function empty(container, message) {
+        container.append(create("div", "empty", message));
+      }
+      function renderMatch(match, resultOnly = false) {
+        const card = create("article", "card match");
+        const top = create("div", "match-top");
+        const status = create("span", `status ${["POSTPONED","SUSPENDED","CANCELLED"].includes(match.status) ? "alert" : ""}`, match.statusLabel);
+        top.append(status, create("span", "time", `${match.localDate} · ${match.localTime}`));
+        const teams = create("div", "teams");
+        teams.append(
+          create("div", "team", match.homeTeam),
+          create("div", match.score ? "score" : "versus", match.score || "VS"),
+          create("div", "team", match.awayTeam)
+        );
+        card.append(top, teams);
+        card.append(create("div", "reason", `${match.stage} · ${match.venue} · ${match.recommendationReason}`));
+        const foot = create("div", "match-foot");
+        const actions = create("div", "match-actions");
+        if (!resultOnly && !["FINISHED","CANCELLED"].includes(match.status)) {
+          const calendar = create("button", "button primary small", "加入日历");
+          calendar.type = "button";
+          calendar.addEventListener("click", () => downloadIcs(match));
+          const google = create("a", "button small", "Google 日历");
+          google.href = googleUrl(match);
+          google.target = "_blank";
+          google.rel = "noopener";
+          actions.append(calendar, google);
+        }
+        const source = create("a", "source-link", `来源：${match.source}`);
+        source.href = match.sourceUrl;
+        source.target = "_blank";
+        source.rel = "noopener";
+        foot.append(actions, source);
+        card.append(foot);
+        return card;
+      }
+      function renderMatches(selector, matches, message, resultOnly = false) {
+        const container = $(selector);
+        if (!matches.length) return empty(container, message);
+        matches.forEach((match) => container.append(renderMatch(match, resultOnly)));
+      }
+      renderMatches("#yesterday-results", data.yesterdayResults, "昨日没有已结束的世界杯比赛。", true);
+      renderMatches("#today-matches", data.todayMatches, "今天没有已公布的世界杯比赛。");
+      renderMatches("#tomorrow-matches", data.tomorrowMatches, "明天没有已公布的世界杯比赛。");
+
+      const newsContainer = $("#news");
+      if (!data.news.length) {
+        empty(newsContainer, "暂未找到足够可靠的今日新闻，因此没有用传闻凑数。");
+      } else {
+        data.news.forEach((item) => {
+          const article = create("article", "card news");
+          const meta = create("div", "news-meta", `${item.source}\n${item.publishedLabel}`);
+          meta.style.whiteSpace = "pre-line";
+          const link = create("a");
+          link.href = item.url;
+          link.target = "_blank";
+          link.rel = "noopener";
+          const title = create("h3", "", item.title);
+          if (item.verification === "unconfirmed") title.append(create("span", "unconfirmed", "尚未确认"));
+          link.append(title, create("p", "", item.summary));
+          article.append(meta, link);
+          newsContainer.append(article);
+        });
+      }
+      const fetchedAt = data.meta.matchData.fetchedAt ? new Date(data.meta.matchData.fetchedAt).toLocaleString("zh-CN", { timeZone: data.meta.timezone }) : "未知";
+      const generatedAt = new Date(data.meta.generatedAt).toLocaleString("zh-CN", { timeZone: data.meta.timezone });
+      $("#data-notes").replaceChildren(
+        create("p", "", `比赛数据：${data.meta.matchData.source} · ${data.meta.matchData.isCached ? "缓存" : "实时请求"} · 获取于 ${fetchedAt}`),
+        create("p", "", `日报生成：${generatedAt}（${data.meta.timezone}）`),
+        create("p", "", "新闻只展示标题、原创摘要、来源和原文链接；没有可靠来源时宁缺毋滥。")
+      );
+
+      const dialog = $("#preferences-dialog");
+      const fields = {
+        teams: $("#favorite-teams"), players: $("#favorite-players"), timezone: $("#timezone"),
+        delivery: $("#delivery-time"), reminder: $("#reminder-minutes"), density: $("#density")
+      };
+      function fillPreferences() {
+        fields.teams.value = data.profile.favoriteTeams.join(", ");
+        fields.players.value = data.profile.favoritePlayers.join(", ");
+        fields.timezone.value = data.profile.timezone;
+        fields.delivery.value = data.profile.dailyDeliveryTime;
+        fields.reminder.value = String(data.profile.reminderMinutes);
+        fields.density.value = data.profile.density;
+      }
+      $("#open-preferences").addEventListener("click", () => { fillPreferences(); dialog.showModal(); });
+      function splitList(value) {
+        return [...new Set(value.split(/[,，]/).map((item) => item.trim()).filter(Boolean))];
+      }
+      function currentProfile() {
+        return {
+          version: 1,
+          favoriteTeams: splitList(fields.teams.value),
+          favoritePlayers: splitList(fields.players.value),
+          timezone: fields.timezone.value.trim(),
+          dailyDeliveryTime: fields.delivery.value,
+          reminderMinutes: Number(fields.reminder.value),
+          density: fields.density.value,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      function validateProfile(profile) {
+        if (!profile.timezone || !profile.dailyDeliveryTime) throw new Error("请填写时区和推送时间");
+        try { new Intl.DateTimeFormat("zh-CN", { timeZone: profile.timezone }).format(); }
+        catch { throw new Error("时区无效，请使用 Asia/Shanghai 这样的 IANA 时区"); }
+      }
+      function downloadProfile(profile) {
+        const blob = new Blob([JSON.stringify(profile, null, 2) + "\n"], { type: "application/json" });
+        const link = create("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "profile.json";
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 500);
+      }
+      async function saveProfile() {
+        try {
+          const profile = currentProfile();
+          validateProfile(profile);
+          const text = JSON.stringify(profile, null, 2) + "\n";
+          if ("showSaveFilePicker" in window) {
+            const handle = await window.showSaveFilePicker({
+              suggestedName: "profile.json",
+              types: [{ description: "世界杯偏好 JSON", accept: { "application/json": [".json"] } }]
+            });
+            const writable = await handle.createWritable();
+            await writable.write(text);
+            await writable.close();
+            toast("偏好文件已保存");
+          } else {
+            downloadProfile(profile);
+            toast("已下载 profile.json");
+          }
+          if (profile.timezone !== data.profile.timezone || profile.dailyDeliveryTime !== data.profile.dailyDeliveryTime) {
+            setTimeout(() => toast("记得回到 Codex 同步每日任务时间"), 2400);
+          }
+        } catch (error) {
+          if (error.name !== "AbortError") toast(error.message || "保存失败");
+        }
+      }
+      $("#save-profile").addEventListener("click", saveProfile);
+      $("#copy-instruction").addEventListener("click", async () => {
+        try {
+          const profile = currentProfile();
+          validateProfile(profile);
+          const instruction = `使用 $world-cup-daily 更新我的偏好：球队 ${profile.favoriteTeams.join("、") || "无"}；球星 ${profile.favoritePlayers.join("、") || "无"}；时区 ${profile.timezone}；每日推送 ${profile.dailyDeliveryTime}；提前提醒 ${profile.reminderMinutes} 分钟；内容密度 ${profile.density}。如果时区或推送时间改变，请同步更新已有每日任务。`;
+          await navigator.clipboard.writeText(instruction);
+          toast("修改指令已复制");
+        } catch (error) {
+          toast(error.message || "复制失败");
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

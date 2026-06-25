@@ -1,0 +1,7 @@
+interface:
+  display_name: "世界杯每日看球"
+  short_description: "生成真实赛程、昨日战况、新闻和个性化比赛预约日报"
+  default_prompt: "使用 $world-cup-daily 设置我的偏好并生成今天的世界杯日报。"
+
+policy:
+  allow_implicit_invocation: true
