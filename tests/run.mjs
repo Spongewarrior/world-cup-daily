@@ -71,6 +71,16 @@ const matches = [
     awayTeam: { name: "Spain", shortName: "Spain", tla: "ESP" },
     score: { fullTime: { home: null, away: null } },
     venue: null
+  },
+  {
+    id: 1004,
+    utcDate: "2026-06-24T15:00:00Z",
+    status: "TIMED",
+    stage: "GROUP_STAGE",
+    homeTeam: { name: "Bosnia-Herzegovina", shortName: "Bosnia-H.", tla: "BIH" },
+    awayTeam: { name: "Curaçao", shortName: "Curaçao", tla: "CUW" },
+    score: { fullTime: { home: null, away: null } },
+    venue: "Test Stadium"
   }
 ];
 const cache = {
@@ -177,10 +187,11 @@ const normalized = JSON.parse(await fs.readFile(normalizedFile, "utf8"));
 assert.equal(normalized.meta.date, "2026-06-23");
 assert.equal(normalized.yesterdayResults.length, 1);
 assert.equal(normalized.todayMatches.length, 1);
-assert.equal(normalized.tomorrowMatches.length, 1);
+assert.equal(normalized.tomorrowMatches.length, 2);
 assert.equal(normalized.todayMatches[0].favorite, true);
 assert.equal(normalized.todayMatches[0].homeTeam, "巴西");
 assert.equal(normalized.todayMatches[0].awayTeam, "阿根廷");
+assert.equal(normalized.tomorrowMatches.some((match) => match.homeTeam === "波黑" && match.awayTeam === "库拉索"), true);
 assert.equal(normalized.yesterdayResults[0].homeTeam, "阿根廷");
 assert.equal(normalized.yesterdayResults[0].awayTeam, "日本");
 assert.equal(normalized.news[0].personalized, true);
