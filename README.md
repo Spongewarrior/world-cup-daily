@@ -122,6 +122,15 @@ bash scripts/build-digest-from-cache.sh
 
 Skill 会根据你的 `profile.json` 里的时区和推送时间来安排任务。
 
+默认建议让每日任务在同一个 Codex 自动任务对话中持续运行。每天到点时，Codex 会在同一个任务线程里追加当天结果；日报 HTML 文件仍然每天单独保存，例如：
+
+```text
+.world-cup-daily/digests/2026-06-25.html
+.world-cup-daily/digests/2026-06-26.html
+```
+
+这样历史记录集中在一个地方，也不会每天新增一个对话。
+
 如果你后来修改了时区或每日推送时间，需要让 Codex 同步更新自动任务。
 
 ## 修改偏好

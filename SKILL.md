@@ -90,6 +90,8 @@ Propose one Codex daily automation per user after first-use setup. Use the profi
 - validate the HTML;
 - return the HTML link and disclose live versus cached data.
 
+Default to running every daily delivery in the same Codex automation thread. Append each day's result to that thread instead of creating a new conversation per day. The HTML digest file itself remains date-specific in `.world-cup-daily/digests/YYYY-MM-DD.html`.
+
 Do not create or change an automation without user confirmation. Prefer updating an existing matching automation over creating a duplicate.
 
 ## Failure behavior
@@ -98,4 +100,3 @@ Do not create or change an automation without user confirmation. Prefer updating
 - If no live data or cache exists, stop match rendering and clearly report the missing data. Never create substitute fixtures.
 - If fewer than three reliable news stories are found, render fewer stories.
 - Never expose `FOOTBALL_DATA_API_TOKEN`, local secrets, or article body text in HTML.
-
