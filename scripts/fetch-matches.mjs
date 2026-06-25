@@ -17,6 +17,26 @@ const endpoint = new URL("https://api.football-data.org/v4/competitions/WC/match
 endpoint.searchParams.set("dateFrom", dateFrom);
 endpoint.searchParams.set("dateTo", dateTo);
 
+function describeFetchError(error) {
+  const message = String(error?.message || error);
+  const cause = String(error?.cause || "");
+
+  if (message.includes("The operation was aborted due to timeout")) {
+    return "请求超时：15 秒内未收到比赛接口响应";
+  }
+  if (cause.includes("ENOTFOUND")) {
+    return "DNS 解析失败：当前运行环境无法解析 api.football-data.org";
+  }
+  if (cause.includes("ECONNREFUSED")) {
+    return "连接被拒绝：当前运行环境无法连到比赛接口";
+  }
+  if (cause.includes("ETIMEDOUT")) {
+    return "网络超时：当前运行环境无法在预期时间内连接比赛接口";
+  }
+
+  return message;
+}
+
 async function useCache(reason) {
   try {
     const cached = await readJson(args.cache);
@@ -64,7 +84,7 @@ if (!token) {
     await writeJson(args.out, envelope);
     console.log(`Fetched ${data.matches.length} World Cup matches.`);
   } catch (error) {
-    await useCache(error.message);
+    await useCache(describeFetchError(error));
   }
 }
 
